@@ -42,7 +42,9 @@ class CharList extends Component {
         const { id, name, thumbnail } = char;
 
         return (
-            <li key={id} className="char__item">
+            <li key={id}
+                onClick={() => { this.props.onSelectedChar(id) }}
+                className="char__item">
                 {thumbnail ? (
                     <img
                         src={thumbnail}
@@ -78,7 +80,7 @@ const View = ({ chars, renderChar }) => {
     return (
         <div className="char__list">
             <ul className="char__grid">
-                {chars.map((char, index) => renderChar(char, index))}
+                {chars.map((char, id) => renderChar(char, id))}
             </ul>
             <button className="button button__main button__long">
                 <div className="inner">load more</div>
