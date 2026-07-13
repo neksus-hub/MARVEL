@@ -8,27 +8,44 @@ class CharList extends Component {
     state = {
         chars: [],
         loading: true,
-        error: false
+        error: false,
+        newItemLoading: false,
+        offset: 0,
+        charEnded: false
     }
 
     marvelService = new MarvelService();
 
     componentDidMount() {
-        this.updateChars();
+        this.onRequest()
     }
 
-    updateChars = () => {
+    onRequest = (offset) => {
+        this.onCharListLoading()
         this.marvelService
-            .getAllCharacters()
-            .then(this.onCharsLoaded)
+            .getAllCharacters(offset)
+            .then(this.onCharListLoaded)
             .catch(this.onError);
     }
 
-    onCharsLoaded = (chars) => {
+    onCharListLoading = () => {
         this.setState({
-            chars: chars,
-            loading: false
-        });
+            newItemLoading: true
+        })
+    }
+
+    onCharListLoaded = (newChars) => {
+        let ended = false
+        if (newChars.length < 9) {
+            ended = true
+        }
+        this.setState(({ offset, chars }) => ({
+            chars: [...chars, ...newChars],
+            loading: false,
+            newItemLoading: false,
+            offset: offset + 9,
+            charEnded: ended
+        }))
     }
 
     onError = () => {
@@ -60,11 +77,26 @@ class CharList extends Component {
     }
 
     render() {
-        const { chars, loading, error } = this.state;
+        const { chars, loading, error, newItemLoading, offset, charEnded } = this.state;
 
         const errorMessage = error ? <Error /> : null;
         const loadingMessage = loading ? <Spinner /> : null;
-        const content = !(error || loading) ? <View chars={chars} renderChar={this.renderChar} /> : null;
+
+
+        const content = !(error || loading) ? (
+            <div className="char__list">
+                <ul className="char__grid">
+                    {chars.map((char) => this.renderChar(char))}
+                </ul>
+                <button
+                    className="button button__main button__long"
+                    disabled={newItemLoading}
+                    style={{ 'display': charEnded ? 'none' : 'block' }}
+                    onClick={() => this.onRequest(offset)}>
+                    <div className="inner">load more</div>
+                </button>
+            </div>
+        ) : null;
 
         return (
             <>
@@ -74,19 +106,6 @@ class CharList extends Component {
             </>
         );
     }
-}
-
-const View = ({ chars, renderChar }) => {
-    return (
-        <div className="char__list">
-            <ul className="char__grid">
-                {chars.map((char, id) => renderChar(char, id))}
-            </ul>
-            <button className="button button__main button__long">
-                <div className="inner">load more</div>
-            </button>
-        </div>
-    );
 }
 
 export default CharList;
