@@ -1,8 +1,9 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 import MarvelService from '../../services/MarvelService';
 import Error from '../error/Error';
 import Spinner from '../spinner/Spinner';
-import Skeleton from '../skeleton/Skeleton'
+import Skeleton from '../skeleton/Skeleton';
 import './charInfo.scss';
 import thor from '../../resources/img/thor.jpeg';
 
@@ -120,6 +121,10 @@ const View = ({ char }) => {
             </ul >
         </>
     )
+}
+
+CharInfo.propTypes = {
+    charId: PropTypes.number
 }
 
 export default CharInfo;
