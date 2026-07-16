@@ -1,32 +1,33 @@
-import './charList.scss';
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import MarvelService from '../../services/MarvelService';
+
 import Spinner from '../spinner/Spinner';
 import Error from '../error/Error';
+import MarvelService from '../../services/MarvelService';
+import './charList.scss';
 
 class CharList extends Component {
+
     state = {
-        chars: [],
+        charList: [],
         loading: true,
         error: false,
         newItemLoading: false,
-        offset: 0,
+        offset: 210,
         charEnded: false
     }
 
     marvelService = new MarvelService();
 
     componentDidMount() {
-        this.onRequest()
+        this.onRequest();
     }
 
     onRequest = (offset) => {
-        this.onCharListLoading()
-        this.marvelService
-            .getAllCharacters(offset)
+        this.onCharListLoading();
+        this.marvelService.getAllCharacters(offset)
             .then(this.onCharListLoaded)
-            .catch(this.onError);
+            .catch(this.onError)
     }
 
     onCharListLoading = () => {
@@ -35,13 +36,14 @@ class CharList extends Component {
         })
     }
 
-    onCharListLoaded = (newChars) => {
-        let ended = false
-        if (newChars.length < 9) {
-            ended = true
+    onCharListLoaded = (newCharList) => {
+        let ended = false;
+        if (newCharList.length < 9) {
+            ended = true;
         }
-        this.setState(({ offset, chars }) => ({
-            chars: [...chars, ...newChars],
+
+        this.setState(({ offset, charList }) => ({
+            charList: [...charList, ...newCharList],
             loading: false,
             newItemLoading: false,
             offset: offset + 9,
@@ -51,44 +53,77 @@ class CharList extends Component {
 
     onError = () => {
         this.setState({
-            loading: false,
-            error: true
-        });
+            error: true,
+            loading: false
+        })
     }
 
-    renderChar = (char) => {
-        const { id, name, thumbnail } = char;
+    itemRefs = [];
 
+    setRef = (ref) => {
+        console.log(ref)
+        this.itemRefs.push(ref);
+    }
+
+    focusOnItem = (id) => {
+        this.itemRefs.forEach(item => item.classList.remove('char__item_selected'));
+        this.itemRefs[id].classList.add('char__item_selected');
+        this.itemRefs[id].focus();
+    }
+
+
+    renderItems(arr) {
+        const items = arr.map((item, i) => {
+            let imgStyle = { 'objectFit': 'cover' };
+            if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+                imgStyle = { 'objectFit': 'unset' };
+            }
+
+            return (
+                <li
+                    className="char__item"
+                    tabIndex={0}
+                    ref={this.setRef}
+                    key={item.id}
+                    onClick={() => {
+                        this.props.onSelectedChar(item.id);
+                        this.focusOnItem(i);
+                    }
+                    }
+                    onKeyPress={(e) => {
+                        if (e.key === ' ' || e.key === "Enter") {
+                            this.props.onSelectedChar(item.id);
+                            this.focusOnItem(i);
+                        }
+                    }}>
+                    <img src={item.thumbnail} alt={item.name} style={imgStyle} />
+                    <div className="char__name">{item.name}</div>
+                </li>
+            )
+        });
+        // А эта конструкция вынесена для центровки спиннера/ошибки
         return (
-            <li key={id}
-                onClick={() => { this.props.onSelectedChar(id) }}
-                className="char__item">
-                {thumbnail ? (
-                    <img
-                        src={thumbnail}
-                        alt={name}
-                        className="char__img"
-                    />
-                ) : (
-                    <Error />
-                )}
-                <div className="char__name">{name}</div>
-            </li>
-        );
+            <ul className="char__grid">
+                {items}
+            </ul>
+        )
     }
 
     render() {
-        const { chars, loading, error, newItemLoading, offset, charEnded } = this.state;
+
+        const { charList, loading, error, offset, newItemLoading, charEnded } = this.state;
+
+        const items = this.renderItems(charList);
 
         const errorMessage = error ? <Error /> : null;
-        const loadingMessage = loading ? <Spinner /> : null;
+        const spinner = loading ? <Spinner /> : null;
+        const content = !(loading || error) ? items : null;
 
-
-        const content = !(error || loading) ? (
+        return (
             <div className="char__list">
-                <ul className="char__grid">
-                    {chars.map((char) => this.renderChar(char))}
-                </ul>
+                {errorMessage}
+                {spinner}
+                {content}
                 <button
                     className="button button__main button__long"
                     disabled={newItemLoading}
@@ -97,24 +132,12 @@ class CharList extends Component {
                     <div className="inner">load more</div>
                 </button>
             </div>
-        ) : null;
-
-        return (
-            <>
-                {errorMessage}
-                {loadingMessage}
-                {content}
-            </>
-        );
+        )
     }
 }
 
 CharList.propTypes = {
     onSelectedChar: PropTypes.func.isRequired
-}
-
-CharList.defaultProps = {
-    onSelectedChar: () => { }
 }
 
 export default CharList;
