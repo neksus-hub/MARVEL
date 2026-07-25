@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import Error from '../error/Error';
@@ -6,99 +6,108 @@ import Error from '../error/Error';
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
 
-class RandomChar extends Component {
+const RandomChar = () => {
+    const [char, setChar] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    state = {
-        char: {},
-        loading: true,
-        error: false
-    }
 
-    marvelService = new MarvelService
+    const timerId = useRef(null);
 
-    componentDidMount() {
-        this.updateChar()
-        this.startTimer()
-    }
+    const marvelService = new MarvelService();
 
-    componentWillUnmount() {
-        clearInterval(this.timerId)
-    }
+    const onCharLoaded = (char) => {
+        setChar(char);
+        setLoading(false);
+    };
 
-    startTimer = () => {
-        this.timerId = setInterval(this.updateChar, 3000)
-    }
+    const onError = () => {
+        setLoading(false);
+        setError(true);
+    };
 
-    resetTimer = () => {
-        clearInterval(this.timerId)
-        this.timerId = setInterval(this.updateChar, 3000)
-    }
-
-    onCharLoaded = (char) => {
-        this.setState({ char, loading: false })
-    }
-
-    updateChar = () => {
-        const id = Math.floor(Math.random() * (20 - 1) + 1);
-        this.marvelService
+    const updateChar = () => {
+        const id = Math.floor(Math.random() * 20 + 1);
+        marvelService
             .getCharacter(id)
-            .then(this.onCharLoaded)
-            .catch(this.onError)
-    }
+            .then(onCharLoaded)
+            .catch(onError);
+    };
 
-    onError = () => {
-        this.setState({
-            loading: false,
-            error: true
-        })
-    }
+    const startTimer = () => {
 
-    render() {
-        const { char, loading, error } = this.state
-        const errorMassage = error ? <Error /> : null
-        const loadingMassage = loading ? <Spinner /> : null
-        const content = !(error || loading) ? <View char={char} /> : null
+        if (timerId.current) {
+            clearInterval(timerId.current);
+        }
+        timerId.current = setInterval(updateChar, 3000);
+    };
 
-        return (
-            <div className="randomchar" >
+    const resetTimer = () => {
 
-                {errorMassage}
-                {loadingMassage}
-                {content}
+        if (timerId.current) {
+            clearInterval(timerId.current);
+        }
 
-                <div className="randomchar__static">
-                    <p className="randomchar__title">
-                        Random character for today!<br />
-                        Do you want to get to know him better?
-                    </p>
-                    <p className="randomchar__title">
-                        Or choose another one
-                    </p>
-                    <button className="button button__main"
-                        onClick={() => {
-                            this.updateChar()
-                            this.resetTimer()
-                        }}>
-                        <div className="inner">try it</div>
-                    </button>
-                    <img src={mjolnir} alt="mjolnir" className="randomchar__decoration" />
-                </div>
+        timerId.current = setInterval(updateChar, 3000);
+    };
+
+    useEffect(() => {
+        updateChar();
+        startTimer();
+
+        return () => {
+            if (timerId.current) {
+                clearInterval(timerId.current);
+            }
+        };
+    }, []);
+
+    const errorMassage = error ? <Error /> : null;
+    const loadingMassage = loading ? <Spinner /> : null;
+    const content = !(error || loading) ? <View char={char} /> : null;
+
+    return (
+        <div className="randomchar">
+            {errorMassage}
+            {loadingMassage}
+            {content}
+
+            <div className="randomchar__static">
+                <p className="randomchar__title">
+                    Random character for today!<br />
+                    Do you want to get to know him better?
+                </p>
+                <p className="randomchar__title">
+                    Or choose another one
+                </p>
+                <button
+                    className="button button__main"
+                    onClick={() => {
+                        updateChar();
+                        resetTimer();
+                    }}
+                >
+                    <div className="inner">try it</div>
+                </button>
+                <img src={mjolnir} alt="mjolnir" className="randomchar__decoration" />
             </div>
-        )
-    }
-}
+        </div>
+    );
+};
 
 const View = ({ char }) => {
-    const { name, description, thumbnail, homepage, wiki } = char
+    const { name, description, thumbnail, homepage, wiki } = char;
 
     return (
         <div className="randomchar__block">
-            {(thumbnail !== null) ? (<img src={thumbnail} alt="Random character" className="randomchar__img" />) : (<Error />)}
+            {thumbnail ? (
+                <img src={thumbnail} alt="Random character" className="randomchar__img" />
+            ) : (
+                <Error />
+            )}
             <div className="randomchar__info">
                 <p className="randomchar__name">{name}</p>
-                <p className="randomchar__descr">
-                    {description}
-                </p>
+                <p className="randomchar__descr">{description}</p>
                 <div className="randomchar__btns">
                     <a href={homepage} className="button button__main">
                         <div className="inner">homepage</div>
@@ -109,7 +118,7 @@ const View = ({ char }) => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default RandomChar;
