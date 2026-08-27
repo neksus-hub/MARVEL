@@ -6,6 +6,7 @@ import Spinner from '../spinner/Spinner';
 import Skeleton from '../skeleton/Skeleton';
 import './charInfo.scss';
 import thor from '../../resources/img/thor.jpeg';
+import ComicsList from '../comicsList/ComicsList';
 
 const CharInfo = (props) => {
 
@@ -93,7 +94,7 @@ const View = ({ char }) => {
                         if (id > 10) return;
                         return (
                             <li key={id} className="char__comics-item" >
-                                {item}
+                             {item}
                             </li>
                         )
                     })

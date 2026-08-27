@@ -32,5 +32,5 @@ export const useMarvelService = () => {
         }
     }
 
-    return { error, loading, getCharacter, getAllCharacters, clearError }
+    return { error, loading, getCharacter, getAllCharacters, clearError}
 }
