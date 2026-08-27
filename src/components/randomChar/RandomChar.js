@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import MarvelService from '../../services/MarvelService';
+import { useMarvelService } from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import Error from '../error/Error';
 
@@ -8,30 +8,19 @@ import mjolnir from '../../resources/img/mjolnir.png';
 
 const RandomChar = () => {
     const [char, setChar] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
 
     const timerId = useRef(null);
 
-    const marvelService = new MarvelService();
+    const { error, loading, getCharacter, clearError } = useMarvelService();
 
     const onCharLoaded = (char) => {
         setChar(char);
-        setLoading(false);
-    };
-
-    const onError = () => {
-        setLoading(false);
-        setError(true);
     };
 
     const updateChar = () => {
+        clearError()
         const id = Math.floor(Math.random() * 20 + 1);
-        marvelService
-            .getCharacter(id)
-            .then(onCharLoaded)
-            .catch(onError);
+        getCharacter(id).then(onCharLoaded)
     };
 
     const startTimer = () => {

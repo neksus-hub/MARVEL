@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useMarvelService } from '../../services/MarvelService';
 import PropTypes from 'prop-types';
-import MarvelService from '../../services/MarvelService';
 import Error from '../error/Error';
 import Spinner from '../spinner/Spinner';
 import Skeleton from '../skeleton/Skeleton';
@@ -11,10 +11,8 @@ const CharInfo = (props) => {
 
     const { charId } = props
     const [char, setChar] = useState(null)
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(false)
 
-    const marvelService = new MarvelService
+    const { error, loading, getCharacter, clearError } =  useMarvelService()
 
     useEffect(() => {
         if (!charId) {
@@ -32,10 +30,7 @@ const CharInfo = (props) => {
 
     const randomChar = () => {
         const id = Math.floor(Math.random() * (20 - 1) + 1);
-        marvelService
-            .getCharacter(id)
-            .then(onCharLoaded)
-            .catch(onError)
+        getCharacter(id).then(onCharLoaded)
     }
 
     const updateChar = () => {
@@ -45,24 +40,13 @@ const CharInfo = (props) => {
             return;
         }
 
-        setLoading(false)
+        clearError()
 
-        marvelService
-            .getCharacter(charId)
-            .then(onCharLoaded)
-            .catch(onError)
-    }
-
-    const onError = () => {
-
-        setLoading(false)
-        setError(true)
+        getCharacter(charId).then(onCharLoaded)
     }
 
     const onCharLoaded = (char) => {
-
         setChar(char)
-        setLoading(false)
     }
 
     const skeleton = char || loading || error ? null : <Skeleton />
