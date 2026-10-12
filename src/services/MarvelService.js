@@ -3,13 +3,11 @@ import { useHttp } from "../hooks/http.hook";
 export const useMarvelService = () => {
     const { error, loading, request, clearError } = useHttp();
 
-    // НЕ ТРОГАЕМ — оставляем как было
     const _apiurl = "https://marvel-server-zeta.vercel.app/characters";
     const _comicsUrl = "https://marvel-server-zeta.vercel.app/comics";
     const _apikey = "apikey=d4eecb0c66dedbfae4eab45d312fc1df";
     const _baseOffset = 0;
 
-    // --- Персонажи (не трогаем) ---
     const getAllCharacters = async (offset = _baseOffset) => {
         const res = await request(
             `${_apiurl}?limit=9&offset=${offset}&${_apikey}`
@@ -37,7 +35,19 @@ export const useMarvelService = () => {
         comics: char.comics.items,
     });
 
-    // --- Комиксы (добавляем) ---
+    const getComic = async (id) => {
+    try {
+        const res = await request(`${_comicsUrl}/${id}?${_apikey}`);
+        // Если API вернул пустой массив — комикса нет
+        if (!res?.data?.results?.[0]) return null;
+        return _transformComics(res.data.results[0]);
+    } catch (e) {
+        // Если это 404 — комикса нет, возвращаем null
+        // (ошибка уже записана в state хука useHttp, но мы её "глотаем")
+        return null;
+    }
+};
+
     const getAllComics = async (offset = _baseOffset) => {
         const res = await request(
             `${_comicsUrl}?limit=9&offset=${offset}&${_apikey}`
@@ -46,16 +56,16 @@ export const useMarvelService = () => {
         return res.data.results.map(_transformComics);
     };
 
-    const _transformComics = (comic) => ({
-        id: comic.id,
-        title: comic.title,
-        description: comic.description,
-        thumbnail: comic.thumbnail
-            ? `${comic.thumbnail.path}.${comic.thumbnail.extension}`
+    const _transformComics = (comics) => ({
+        id: comics.id,
+        title: comics.title,
+        description: comics.description,
+        thumbnail: comics.thumbnail
+            ? `${comics.thumbnail.path}.${comics.thumbnail.extension}`
             : null,
-        price: comic.prices?.[0]?.price ?? null,
-        pageCount: comic.pageCount,
-        language: comic.textObjects?.languages,
+        price: comics.prices?.[0]?.price ?? null,
+        pageCount: comics.pageCount,
+        language: comics.textObjects?.languages,
     });
 
     return {
@@ -63,7 +73,10 @@ export const useMarvelService = () => {
         loading,
         getCharacter,
         getAllCharacters,
-        getAllComics, // ← новый метод
+        getAllComics,
+        getComic,
         clearError,
     };
 };
+
+export default useMarvelService

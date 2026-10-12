@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMarvelService } from "../../services/MarvelService";
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import Error from "../error/Error";
 import Spinner from "../spinner/Spinner";
@@ -16,7 +17,6 @@ const CharInfo = ({ charId }) => {
         } else {
             randomChar();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [charId]);
 
     const randomChar = () => {

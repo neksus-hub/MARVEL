@@ -62,13 +62,13 @@ const CharList = (props) => {
                     ref={(el) => (itemRefs.current[i] = el)}
                     key={item.id}
                     onClick={() => {
-                        props.onSelectedChar(item); // ✅ весь объект
+                        props.onSelectedChar(item);
                         focusOnItem(item.id);
                     }}
                     onKeyPress={(e) => {
                         if (e.key === " " || e.key === "Enter") {
                             e.preventDefault();
-                            props.onSelectedChar(item); // ✅ весь объект
+                            props.onSelectedChar(item);
                             focusOnItem(item.id);
                         }
                     }}
