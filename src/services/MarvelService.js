@@ -36,17 +36,17 @@ export const useMarvelService = () => {
     });
 
     const getComic = async (id) => {
-    try {
-        const res = await request(`${_comicsUrl}/${id}?${_apikey}`);
-        // Если API вернул пустой массив — комикса нет
-        if (!res?.data?.results?.[0]) return null;
-        return _transformComics(res.data.results[0]);
-    } catch (e) {
-        // Если это 404 — комикса нет, возвращаем null
-        // (ошибка уже записана в state хука useHttp, но мы её "глотаем")
-        return null;
-    }
-};
+        try {
+            const res = await request(`${_comicsUrl}/${id}?${_apikey}`);
+            // Если API вернул пустой массив — комикса нет
+            if (!res?.data?.results?.[0]) return null;
+            return _transformComics(res.data.results[0]);
+        } catch (e) {
+            // Если это 404 — комикса нет, возвращаем null
+            // (ошибка уже записана в state хука useHttp, но мы её "глотаем")
+            return null;
+        }
+    };
 
     const getAllComics = async (offset = _baseOffset) => {
         const res = await request(

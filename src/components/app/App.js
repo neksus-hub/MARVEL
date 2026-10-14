@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import AppHeader from "../appHeader/AppHeader";
-import { MainPage, ComicsPage, Page404, SingleComicPage} from "../../pages";
+import Spinner from "../spinner/Spinner";
+
+const Page404 = lazy(() => import('../../pages/Page404'));
+const MainPage = lazy(() => import('../../pages/MainPage'));
+const ComicsPage = lazy(() => import('../../pages/СomicsPage'));
+const SingleComicPage = lazy(() => import('../../pages/SingleComicPage'));
 
 const App = () => {
     const [selectedChar, setSelectedChar] = useState(null);
@@ -14,22 +19,24 @@ const App = () => {
         <Router>
             <div className="app">
                 <AppHeader />
-                <main>
-                    <Routes>
-                        <Route
-                            path="/"
-                            element={
-                                <MainPage
-                                    selectedChar={selectedChar}
-                                    onSelectedChar={onSelectedChar}
-                                />
-                            }
-                        />
-                        <Route path="/comics" element={<ComicsPage />} />
-                        <Route path="/comics/:comicId" element={<SingleComicPage />} />
-                        <Route path="*" element={<Page404/>} />  
-                    </Routes>
-                </main>
+                <Suspense fallback={<Spinner/>}>
+                    <main>
+                        <Routes>
+                            <Route
+                                path="/"
+                                element={
+                                    <MainPage
+                                        selectedChar={selectedChar}
+                                        onSelectedChar={onSelectedChar}
+                                    />
+                                }
+                            />
+                            <Route path="/comics" element={<ComicsPage />} />
+                            <Route path="/comics/:comicId" element={<SingleComicPage />} />
+                            <Route path="*" element={<Page404/>} />  
+                        </Routes>
+                    </main>
+                </Suspense>
             </div>
         </Router>
     );
