@@ -19,7 +19,7 @@ const RandomChar = () => {
 
     const updateChar = () => {
         clearError()
-        const id = Math.floor(Math.random() * 20 + 1);
+        const id = Math.floor(Math.random() * 19 + 2);
         getCharacter(id).then(onCharLoaded)
     };
 
