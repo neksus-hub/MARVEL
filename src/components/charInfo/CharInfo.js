@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useMarvelService } from "../../services/MarvelService";
-import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import Error from "../error/Error";
 import Spinner from "../spinner/Spinner";
@@ -20,7 +19,7 @@ const CharInfo = ({ charId }) => {
     }, [charId]);
 
     const randomChar = () => {
-        const id = Math.floor(Math.random() * 20 + 1);
+        const id = Math.floor(Math.random() * 19 + 2);
         clearError();
         getCharacter(id).then(onCharLoaded);
     };

@@ -15,12 +15,33 @@ export const useMarvelService = () => {
         return res.data.results.map(_transformChar);
     };
 
-    const getCharacter = async (id) => {
-        const res = await request(`${_apiurl}/${id}?${_apikey}`);
-        if (res.data.results[0].description === null) {
-            res.data.results[0].description = "Отсутствует описание персонажа";
-        }
-        return _transformChar(res.data.results[0]);
+        const getCharacter = async (id) => {
+            const res = await request(`${_apiurl}/${id}?${_apikey}`);
+            if (res.data.results[0].description === null) {
+                res.data.results[0].description = "Отсутствует описание персонажа";
+            }
+            return _transformChar(res.data.results[0]);
+        };
+
+        const getCharacterByName = async (name) => {
+        // 1. Запрашиваем сразу всех персонажей (limit=20)
+        const res = await request(`${_apiurl}?limit=20&${_apikey}`);
+
+        console.log(res)
+        
+        if (!res?.data?.results) return null;
+
+        // 2. Ищем нужного персонажа в полученном массиве
+        // toLowerCase() делает поиск нечувствительным к регистру (thor, Thor, THOR)
+        // includes() ищет совпадение по буквам (например, "iron" найдет "Iron Man")
+        const foundChar = res.data.results.find(char => 
+            char.name.toLowerCase().includes(name.toLowerCase().trim())
+        );
+
+        console.log(foundChar)
+
+        // 3. Если нашли — трансформируем и возвращаем, если нет — null
+        return foundChar ? _transformChar(foundChar) : null;
     };
 
     const _transformChar = (char) => ({
@@ -76,6 +97,7 @@ export const useMarvelService = () => {
         getAllComics,
         getComic,
         clearError,
+        getCharacterByName
     };
 };
 
