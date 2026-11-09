@@ -3,9 +3,24 @@ import { Link } from "react-router-dom";
 
 import useMarvelService from "../../services/MarvelService";
 import Spinner from "../spinner/Spinner";
-import ErrorMessage from "../error/Error";
+import Error from "../error/Error";
 
 import "./comicsList.scss";
+
+const setContent = (process, content, newItemsLoading) => {
+  switch (process) {
+    case "Waiting":
+      return <Spinner />;
+    case "Loading":
+      return newItemsLoading ? content : <Spinner />;
+    case "Confirmed":
+      return content;
+    case "Error":
+      return <Error />;
+    default:
+      throw new Error("Непредвиденное состояние процесса");
+  }
+};
 
 const ComicsList = () => {
   const [comicsList, setComicsList] = useState([]);
@@ -15,31 +30,30 @@ const ComicsList = () => {
 
   const limit = 9;
 
-  const { loading, error, getAllComics } = useMarvelService();
+  const { process, setProcess, getAllComics } = useMarvelService();
 
   useEffect(() => {
     onRequest(offset, true);
   }, []);
 
-  //Смена статуса после загрузки персонажа
-  //loaded - уже загружен
   const onComicsListLoaded = (newComicsList) => {
     let ended = false;
     if (newComicsList.length < 9) {
       ended = true;
     }
-    //есть зависимость от предыдущего состояния
+
     setComicsList((comicsList) => [...comicsList, ...newComicsList]);
     setNewItemsLoading(() => false);
     setOffset((offset) => offset + limit);
     setComicsEnded(() => ended);
   };
 
-  //Метод для загрузки карточек персонажей (при загрузке и по кнопке Загузить ещё)
   const onRequest = (offset, initial) => {
     initial ? setNewItemsLoading(false) : setNewItemsLoading(true);
 
-    getAllComics(offset).then(onComicsListLoaded);
+    getAllComics(offset)
+    .then(onComicsListLoaded)
+    .then(() => setProcess('Confirmed'))
   };
 
   function renderItems(arr) {
@@ -56,24 +70,23 @@ const ComicsList = () => {
         </li>
       );
     });
-    return items;
+
+    return (
+      <ul className="comics__grid">
+        {items}
+      </ul>
+    );
   }
 
-  const elements = renderItems(comicsList);
-
-  const errorMessage = error ? <ErrorMessage /> : null;
-  const spinner = loading && !newItemsLoading ? <Spinner /> : null;
 
   return (
     <div className="comics__list">
-      {errorMessage}
-      {spinner}
-      <ul className="comics__grid">{elements}</ul>
+      {setContent(process, renderItems(comicsList), newItemsLoading)}
       <button
         className="button button__main button__long"
         disabled={newItemsLoading}
         style={{ display: comicsEnded ? "none" : "block" }}
-        onClick={() => onRequest(offset, true)}
+        onClick={() => onRequest(offset)}
       >
         <div className="inner">загрузить ещё</div>
       </button>

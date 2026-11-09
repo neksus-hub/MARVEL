@@ -1,8 +1,13 @@
 import img from './error.gif'
 
-const Error = () => {
+const Error = ({ style, ...props }) => {
     return (
-        <img src={img} style={{ display: 'block', width: '250px', height: '250px', objectFit: 'contain', margin: '0 auto' }} alt="Ошибка" className="error" />
+        <img 
+            src={img} 
+            alt="Ошибка" 
+            style={{ objectFit: "contain", ...style }} 
+            {...props}
+        />
     )
 }
 

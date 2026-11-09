@@ -1,10 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import Spinner from "../components/spinner/Spinner";
-import Error from "../components/error/Error";
 import useMarvelService from "../services/MarvelService";
 import AppBanner from "../components/appBanner/AppBanner";
+import setContent from "../utils/setContent";
 
 const SinglePage = ({ Component, dataType }) => {
   //useParams() - отдает объект вида {id: '8461'}
@@ -12,8 +11,14 @@ const SinglePage = ({ Component, dataType }) => {
   const [data, setData] = useState(null);
 
   // элемент класса MarvelService - объект CharInfo
-  const { loading, error, clearError, getComic, getCharacter } =
-    useMarvelService();
+  const 
+  { 
+    process, 
+    clearError, 
+    getComic, 
+    getCharacter, 
+    setProcess 
+  } = useMarvelService();
 
   useEffect(() => {
     updateData();
@@ -28,28 +33,24 @@ const SinglePage = ({ Component, dataType }) => {
     clearError();
     switch (dataType) {
       case "comic":
-        getComic(id).then(onDataLoaded);
+        getComic(id)
+        .then(onDataLoaded)
+        .then(() => setProcess('Confirmed'))
         break;
       case "character":
-        getCharacter(id).then(onDataLoaded);
+        getCharacter(id)
+        .then(onDataLoaded)
+        .then(() => setProcess('Confirmed'))
         break;
       default:
         break;
     }
   };
 
-  const errorMessage = error ? <Error /> : null;
-  const spinner = loading ? <Spinner /> : null;
-  const content = !(loading || error || !data) ? (
-    <Component data={data} />
-  ) : null;
-
   return (
     <>
       <AppBanner />
-      {errorMessage}
-      {spinner}
-      {content}
+      {setContent(process, Component, data)}
     </>
   );
 };

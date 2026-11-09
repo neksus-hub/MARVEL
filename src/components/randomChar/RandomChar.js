@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMarvelService } from '../../services/MarvelService';
-import Spinner from '../spinner/Spinner';
-import Error from '../error/Error';
+import SafeImage from '../../ui/SafeImage';
+import setContent from '../../utils/setContent';
 
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
@@ -11,7 +11,7 @@ const RandomChar = () => {
 
     const timerId = useRef(null);
 
-    const { error, loading, getCharacter, clearError } = useMarvelService();
+    const { process, setProcess, getCharacter, clearError } = useMarvelService();
 
     const onCharLoaded = (char) => {
         setChar(char);
@@ -20,16 +20,19 @@ const RandomChar = () => {
     const updateChar = () => {
         clearError()
         const id = Math.floor(Math.random() * 19 + 2);
-        getCharacter(id).then(onCharLoaded)
+        getCharacter(id)
+        .then(onCharLoaded)
+        .then(() => setProcess('Confirmed'))
     };
 
     const startTimer = () => {
 
         if (timerId.current) {
-            clearInterval(timerId.current);
+           clearInterval(timerId.current);
         }
+
         timerId.current = setInterval(updateChar, 3000);
-    };
+   };
 
     const resetTimer = () => {
 
@@ -51,16 +54,9 @@ const RandomChar = () => {
         };
     }, []);
 
-    const errorMassage = error ? <Error /> : null;
-    const loadingMassage = loading ? <Spinner /> : null;
-    const content = !(error || loading) ? <View char={char} /> : null;
-
     return (
         <div className="randomchar">
-            {errorMassage}
-            {loadingMassage}
-            {content}
-
+            {setContent(process, View, char)}
             <div className="randomchar__static">
                 <p className="randomchar__title">
                     Random character for today!<br />
@@ -84,16 +80,16 @@ const RandomChar = () => {
     );
 };
 
-const View = ({ char }) => {
-    const { name, description, thumbnail, homepage, wiki } = char;
+const View = ({ data }) => {
+    const { name, description, thumbnail, homepage, wiki } = data;
 
     return (
         <div className="randomchar__block">
-            {thumbnail ? (
-                <img src={thumbnail} alt="Random character" className="randomchar__img" />
-            ) : (
-                <Error />
-            )}
+            <SafeImage 
+                src={thumbnail} 
+                alt={name}
+                className='randomchar__img' 
+            />
             <div className="randomchar__info">
                 <p className="randomchar__name">{name}</p>
                 <p className="randomchar__descr">{description}</p>

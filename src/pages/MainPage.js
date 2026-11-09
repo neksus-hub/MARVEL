@@ -1,3 +1,5 @@
+import { useState, useCallback} from "react";
+
 import RandomChar from "../components/randomChar/RandomChar";
 import CharList from "../components/charList/CharList";
 import CharInfo from "../components/charInfo/CharInfo";
@@ -5,7 +7,14 @@ import ErrorBoundary from "../errorBoundary/ErrorBoundary";
 import decoration from "../resources/img/vision.png";
 import CharSearchForm from "../components/charSearchForm/charSearchForm";
 
-const MainPage = ({ selectedChar, onSelectedChar }) => {
+const MainPage = () => {
+
+    const [selectedChar, setSelectedChar] = useState(null);
+
+    const onSelectedChar = useCallback((charId) => {
+        setSelectedChar(charId);
+    }, []);
+
     return (
         <>
             <ErrorBoundary>
@@ -15,7 +24,7 @@ const MainPage = ({ selectedChar, onSelectedChar }) => {
                     <CharList onSelectedChar={onSelectedChar} />
                     <div>
                         <ErrorBoundary>
-                            <CharInfo charId={selectedChar?.id} />
+                            <CharInfo charId={selectedChar} />
                         </ErrorBoundary>
                         <ErrorBoundary>
                             <CharSearchForm />

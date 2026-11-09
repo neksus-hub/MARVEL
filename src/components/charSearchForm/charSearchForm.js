@@ -12,10 +12,34 @@ import useMarvelService from "../../services/MarvelService";
 import Error from "../error/Error";
 
 import "./charSearchForm.scss";
+import Spinner from "../spinner/Spinner";
+
+const setContent = (process, Component, data) => {
+  switch (process) {
+    case "Waiting":
+      return null;
+    case "Loading":
+      return <Spinner />;
+    case "Confirmed":
+      return <Component char={data}/>;
+    case "Error":
+      return (
+        <div className="char__search-critical-error">
+          <Error />
+        </div>
+      );
+    default:
+      return (
+        <div className="char__search-error">
+          Персонаж не найден. Проверьте имя и повторите попытку.
+        </div>
+      );
+  }
+};
 
 const CharSearchForm = () => {
   const [char, setChar] = useState(null);
-  const { loading, error, getCharacterByName, clearError } = useMarvelService();
+  const { process, setProcess, getCharacterByName, clearError } = useMarvelService();
 
   //Смена статуса после загрузки персонажа
   const onCharLoaded = (char) => {
@@ -24,32 +48,27 @@ const CharSearchForm = () => {
 
   const updateChar = (name) => {
     clearError();
-    getCharacterByName(name).then(onCharLoaded);
+    getCharacterByName(name)
+    .then(onCharLoaded)
+    .then(() => setProcess('Confirmed'))
   };
 
-  const errorMessage = error ? (
-    <div className="char__search-critical-error">
-      <Error />
-    </div>
-  ) : null;
-
-  const results = !char ? null : char ? (
-    <div className="char__search-wrapper">
-      <div className="char__search-susses">
-        Успех! Перейти на страницу {char.name}?
+  const View = ({char}) => {
+    const { name, id } = char
+    return (
+      <div className="char__search-wrapper">
+        <div className="char__search-susses">
+          Успех! Перейти на страницу {name}?
+        </div>
+        <Link
+          to={`/characters/${id}`}
+          className="button button__secondary"
+        >
+          <div className="inner">О персонаже</div>
+        </Link>
       </div>
-      <Link
-        to={`/characters/${char.id}`}
-        className="button button__secondary"
-      >
-        <div className="inner">О персонаже</div>
-      </Link>
-    </div>
-  ) : (
-    <div className="char__search-error">
-      Персонаж не найден. Проверьте имя и повторите попытку.
-    </div>
-  );
+    )
+  }
 
   //Form - компонент - при нажатии на кнопку отправки формы вызовет formik.onSubmit, если пройдена валидация
   //Field - компонент - вызовет встроенные ф-ции formik.values.name, formik.handleChange, formik.handleBlur (value возьмет из name)
@@ -81,7 +100,7 @@ const CharSearchForm = () => {
             <button
               type="submit"
               className="button button__main"
-              disabled={loading}
+              disabled={process === 'Loading'}
             >
               <div className="inner">Найти</div>
             </button>
@@ -94,8 +113,7 @@ const CharSearchForm = () => {
           />
         </Form>
       </Formik>
-      {results}
-      {errorMessage}
+      {setContent(process, View, char)}
     </div>
   );
 };

@@ -4,15 +4,31 @@ import { useMarvelService } from "../../services/MarvelService";
 import PropTypes from "prop-types";
 import Spinner from "../spinner/Spinner";
 import Error from "../error/Error";
+import SafeImage from "../../ui/SafeImage";
 import "./charList.scss";
+
+const setContent = (process, content, newItemLoading) => {
+  switch (process) {
+    case "Waiting":
+      return <Spinner />;
+    case "Loading":
+      return newItemLoading ? content : <Spinner />;
+    case "Confirmed":
+      return content;
+    case "Error":
+      return <Error />;
+    default:
+      throw new Error("Непредвиденное состояние процесса");
+  }
+};
 
 const CharList = (props) => {
     const [charList, setCharList] = useState([]);
     const [newItemLoading, setNewItemLoading] = useState(false);
-    const [offset, setOffset] = useState(1);
+    const [offset, setOffset] = useState(0);
     const [charEnded, setCharEnded] = useState(false);
 
-    const { error, loading, getAllCharacters } = useMarvelService();
+    const { getAllCharacters, setProcess, process } = useMarvelService();
 
     useEffect(() => {
         onRequest(offset, true);
@@ -21,7 +37,9 @@ const CharList = (props) => {
 
     const onRequest = (offset, initial) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true);
-        getAllCharacters(offset).then(onCharListLoaded);
+        getAllCharacters(offset)
+        .then(onCharListLoaded)
+        .then(() => setProcess('Confirmed'))
     };
 
     const onCharListLoaded = (newCharList) => {
@@ -56,24 +74,27 @@ const CharList = (props) => {
         const duration = 1000;
 
         const defaultStyle = {
-        transition: `opacity ${duration}ms ease-in-out`,
-        opacity: 0,
+            transition: `opacity ${duration}ms ease-in-out`,
+            opacity: 0,
         }
 
         const transitionStyles = {
-        entering: { opacity: 1 },
-        entered:  { opacity: 1 },
-        exiting:  { opacity: 0 },
-        exited:  { opacity: 0 },
+            entering: { opacity: 1 },
+            entered:  { opacity: 1 },
+            exiting:  { opacity: 0 },
+            exited:  { opacity: 0 },
         };
 
         const items = arr.map((item, i) => {
-            const imgStyle = { objectFit: "cover" };
 
             const delay = (i % 9) * 60; 
 
             return (
-               <Transition timeout={duration} in={true} appear={true} key={item.id}>
+               <Transition 
+                timeout={duration} 
+                in={true} 
+                appear={true} 
+                key={item.id}>
                 {state => (
                     <li
                         className="char__item"
@@ -81,13 +102,13 @@ const CharList = (props) => {
                         data-id={item.id}
                         ref={(el) => (itemRefs.current[i] = el)}
                         onClick={() => {
-                            props.onSelectedChar(item);
+                            props.onSelectedChar(item.id);
                             focusOnItem(item.id);
                         }}
                         onKeyPress={(e) => {
                             if (e.key === " " || e.key === "Enter") {
                                 e.preventDefault();
-                                props.onSelectedChar(item);
+                                props.onSelectedChar(item.id);
                                 focusOnItem(item.id);
                             }
                         }}
@@ -97,7 +118,7 @@ const CharList = (props) => {
                         transitionDelay: `${delay}ms`
                         }}
                     >
-                        <img src={item.thumbnail} alt={item.name} style={imgStyle} />
+                         <SafeImage src={item.thumbnail}/>
                         <div className="char__name">{item.name}</div>
                     </li>
                 )
@@ -109,15 +130,9 @@ const CharList = (props) => {
         return <ul className="char__grid">{items}</ul>;
     }
 
-    const items = renderItems(charList);
-    const errorMessage = error ? <Error /> : null;
-    const spinner = loading && !newItemLoading ? <Spinner /> : null;
-
     return (
         <div className="char__list">
-            {errorMessage}
-            {spinner}
-            {items}
+            {setContent(process, renderItems(charList), newItemLoading)}
             <button
                 className="button button__main button__long"
                 disabled={newItemLoading}

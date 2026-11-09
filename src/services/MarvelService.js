@@ -1,7 +1,7 @@
 import { useHttp } from "../hooks/http.hook";
 
 export const useMarvelService = () => {
-    const { error, loading, request, clearError } = useHttp();
+    const {process, request, clearError, setProcess } = useHttp();
 
     const _apiurl = "https://marvel-server-zeta.vercel.app/characters";
     const _comicsUrl = "https://marvel-server-zeta.vercel.app/comics";
@@ -26,8 +26,6 @@ export const useMarvelService = () => {
         const getCharacterByName = async (name) => {
         // 1. Запрашиваем сразу всех персонажей (limit=20)
         const res = await request(`${_apiurl}?limit=20&${_apikey}`);
-
-        console.log(res)
         
         if (!res?.data?.results) return null;
 
@@ -37,8 +35,6 @@ export const useMarvelService = () => {
         const foundChar = res.data.results.find(char => 
             char.name.toLowerCase().includes(name.toLowerCase().trim())
         );
-
-        console.log(foundChar)
 
         // 3. Если нашли — трансформируем и возвращаем, если нет — null
         return foundChar ? _transformChar(foundChar) : null;
@@ -90,8 +86,8 @@ export const useMarvelService = () => {
     });
 
     return {
-        error,
-        loading,
+        process,
+        setProcess,
         getCharacter,
         getAllCharacters,
         getAllComics,

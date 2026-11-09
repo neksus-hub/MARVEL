@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import SinglePage from "../../pages/SinglePage"
 import AppHeader from "../appHeader/AppHeader";
@@ -13,11 +13,6 @@ const ComicsPage = lazy(() => import('../../pages/СomicsPage'));
 const SingleComicPage = lazy(() => import('../../pages/SingleComicPage'));
 
 const App = () => {
-    const [selectedChar, setSelectedChar] = useState(null);
-
-    const onSelectedChar = (char) => {
-        setSelectedChar(char);
-    };
 
     return (
         <Router>
@@ -29,17 +24,17 @@ const App = () => {
                             <Route
                                 path="/"
                                 element={
-                                    <MainPage
-                                        selectedChar={selectedChar}
-                                        onSelectedChar={onSelectedChar}
-                                    />
+                                    <MainPage/>
                                 }
                             />
                             <Route path="/comics" element={<ComicsPage />} />
                                 <Route
                                     path="/comics/:id"
                                     element={
-                                    <SinglePage Component={singleComicLayout} dataType="comic" />
+                                    <SinglePage 
+                                        Component={singleComicLayout} 
+                                        dataType="comic" 
+                                    />
                                     }
                                 />
                                 <Route

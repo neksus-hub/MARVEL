@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useMarvelService } from "../../services/MarvelService";
 import PropTypes from "prop-types";
-import Error from "../error/Error";
-import Spinner from "../spinner/Spinner";
-import Skeleton from "../skeleton/Skeleton";
+
+import setContent from "../../utils/setContent";
+import SafeImage from "../../ui/SafeImage";
 import "./charInfo.scss";
 
 const CharInfo = ({ charId }) => {
     const [char, setChar] = useState(null);
-    const { error, loading, getCharacter, clearError } = useMarvelService();
+    const { process, getCharacter, clearError, setProcess } = useMarvelService();
 
     useEffect(() => {
         if (charId) {
@@ -21,47 +21,37 @@ const CharInfo = ({ charId }) => {
     const randomChar = () => {
         const id = Math.floor(Math.random() * 19 + 2);
         clearError();
-        getCharacter(id).then(onCharLoaded);
+        getCharacter(id)
+        .then(onCharLoaded)
+        .then(() => setProcess('Confirmed'))
     };
 
     const updateChar = (id) => {
         if (!id) return;
         clearError();
-        getCharacter(id).then(onCharLoaded);
+        getCharacter(id)
+        .then(onCharLoaded)
+        .then(() => setProcess('Confirmed'))
     };
 
     const onCharLoaded = (char) => {
         setChar(char);
     };
 
-    const skeleton = char || loading || error ? null : <Skeleton />;
-    const errorMessage = error ? <Error /> : null;
-    const loadingMessage = loading ? <Spinner /> : null;
-    const content = !(error || loading || char === null) ? (
-        <View char={char} />
-    ) : null;
-
     return (
         <div className="char__info">
-            {skeleton}
-            {errorMessage}
-            {loadingMessage}
-            {content}
+            {setContent(process, View, char)}
         </div>
     );
 };
 
-const View = ({ char }) => {
-    const { name, thumbnail, description, homepage, wiki, comics = [] } = char;
+const View = ({ data }) => {
+    const { name, thumbnail, description, homepage, wiki, comics = [] } = data;
 
     return (
         <>
             <div className="char__basics">
-                {thumbnail ? (
-                    <img src={thumbnail} alt={name} />
-                ) : (
-                    <div className="char__no-image">No image</div>
-                )}
+                <SafeImage src={thumbnail} className='char__img'/>
                 <div>
                     <div className="char__info-name">{name}</div>
                     <div className="char__btns">
